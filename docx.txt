@@ -1,0 +1,16 @@
+main.go is the main entry point for the project
+it has
+App startup
+Route wiring
+Dependency setup
+Server start 
+ 
+ /models : data shape to do struct validation logic and the helper functions 
+ /handlers : HTTP logic to handle the req and res receive request
+parse JSON
+call storage
+return response
+ / storage  data persistance 
+  for now in memory map mutex crud ops 
+  
+ 
