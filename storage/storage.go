@@ -1,28 +1,29 @@
-package storage 
+package storage
 
 import (
 	"errors"
+	"go-crud/models"
 	"sync"
 	"time"
-	"/go-crud/models"
-	
 )
 
+// TodoStore is a simple in-memory storage for Todos
 type TodoStore struct {
-	mu sync.Mutex 
-	todos map[int]models.Todo
+	mu     sync.Mutex
+	todos  map[int]models.Todo
 	nextID int
-
 }
 
-func newtodoto store () *TodoStore {
-	return &TodoStore {
-		todos : make(map[int]models.Todo),
+// NewTodoStore creates a new TodoStore
+func NewTodoStore() *TodoStore {
+	return &TodoStore{
+		todos:  make(map[int]models.Todo),
 		nextID: 1,
 	}
 }
 
-func (s *TodoStore) Create(todo models.Todo) modela.Todo {
+// Create adds a new Todo to the store
+func (s *TodoStore) Create(todo models.Todo) models.Todo {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -33,31 +34,44 @@ func (s *TodoStore) Create(todo models.Todo) modela.Todo {
 	s.nextID++
 
 	return todo
-
 }
 
-func(s *TodoStore) GetAll() []models.Todo {
-	s.mu.Unlock()
+// GetAll returns all Todos from the store
+func (s *TodoStore) GetAll() []models.Todo {
+	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	result := make([]models.Todo,0,len(s.todos))
+	result := make([]models.Todo, 0, len(s.todos))
 	for _, t := range s.todos {
-		 result = append(result , t)
+		result = append(result, t)
 	}
 	return result
-
 }
 
-func (s *TodoStore)  GetByID(id int) (models.Todo, error) {
+// GetByID returns a single Todo from the store by ID
+func (s *TodoStore) GetByID(id int) (models.Todo, error) {
 	s.mu.Lock()
-	defer s.mu.Unlock() 
+	defer s.mu.Unlock()
 
 	todo, ok := s.todos[id]
 	if !ok {
-		return models.Todo {}, errors.New("todo not found")
+		return models.Todo{}, errors.New("todo not found")
 	}
+	return todo, nil
+}
+
+// Update updates a Todo in the store
+func (s *TodoStore) Update(id int, updated models.Todo) (models.Todo, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	todo, ok := s.todos[id]
+	if !ok {
+		return models.Todo{}, errors.New("todo not found")
+	}
+
 	todo.Title = updated.Title
-	todo.description = updated.Description
+	todo.Description = updated.Description
 	todo.Completed = updated.Completed
 	todo.UpdatedAt = time.Now()
 
@@ -65,14 +79,15 @@ func (s *TodoStore)  GetByID(id int) (models.Todo, error) {
 	return todo, nil
 }
 
-func (s *TodoStore) Delete(id int) error{
+// Delete removes a Todo from the store by ID
+func (s *TodoStore) Delete(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if _, ok := s.todos[id]; !ok {
 		return errors.New("todo not found")
 	}
-	delete (s.todos, id)
+	delete(s.todos, id)
 	return nil
 }
 

@@ -1,24 +1,46 @@
- package main
+package main
 
- import ( 
-	 "log" 
-	 "net/http"
-	 "go-crud/handlers"
-	 "go-crud/storage"
- )
+import (
+	"log"
+	"net/http"
 
- func main() {
-	 store:=storage.newTodoStore()
-	 handler := handlers.NewTodoStore(store)
+	"go-crud/handlers"
+	"go-crud/storage"
+)
 
-	 http.handleFunc("/todos",func (w http.ResponseWriter,r *http.Request)
-	if r.Method == http.MethodPost {
-	handler.CreateTodo(w,r)
-	return
+func main() {
+	store := storage.NewTodoStore()
+	todoHandler := handlers.NewTodoHandler(store)
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			todoHandler.GetAllTodos(w, r)
+		case http.MethodPost:
+			todoHandler.CreateTodo(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/todos/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			todoHandler.GetTodoByID(w, r)
+		case http.MethodPut:
+			todoHandler.UpdateTodo(w, r)
+		case http.MethodDelete:
+			todoHandler.DeleteTodo(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	log.Println("server running on port 8080")
+	err := http.ListenAndServe(":8080", mux)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
 	}
-	http.Error(w,"method not allowed",http.StatusMethodNotAllowed)
- )
- }
-
- log.Println("server runnin on port 8080")
- http.ListenandServe(":8080",nil)
+}
