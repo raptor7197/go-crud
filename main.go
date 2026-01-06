@@ -6,6 +6,7 @@ import (
 	"go-crud/handlers"
 	"go-crud/storage"
 	"encoding/json"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func writeError(w http.ResponseWriter,status int , message string ) {
@@ -16,7 +17,10 @@ func writeError(w http.ResponseWriter,status int , message string ) {
 
 
 func main() {
-	store := storage.NewTodoStore()
+	store, err := storage.NewSqliteTodoStore("todo.db")
+	if err != nil {
+		log.Fatal(err)
+	}
 	todoHandler := handlers.NewTodoHandler(store)
 
 
@@ -65,7 +69,7 @@ func main() {
 	
 
 	log.Println("server running on port 8080")
-	err := http.ListenAndServe(":8080", mux)
+	err = http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

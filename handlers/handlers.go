@@ -10,10 +10,10 @@ import (
 )
 
 type TodoHandler struct {
-	Store *storage.TodoStore
+	Store storage.TodoStore
 }
 
-func NewTodoHandler(store *storage.TodoStore) *TodoHandler {
+func NewTodoHandler(store storage.TodoStore) *TodoHandler {
 	return &TodoHandler{
 		Store: store,
 	}
@@ -31,14 +31,22 @@ func (h *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "title is required", http.StatusBadRequest)
 		return
 	}
-	created := h.Store.Create(input)
+	created, err := h.Store.Create(input)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(created)
 }
 
 func (h *TodoHandler) GetAllTodos(w http.ResponseWriter, r *http.Request) {
-	todos := h.Store.GetAll()
+	todos, err := h.Store.GetAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(todos)
 }
