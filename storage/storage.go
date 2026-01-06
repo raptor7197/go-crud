@@ -1,3 +1,4 @@
+
 package storage
 
 import (
@@ -7,23 +8,32 @@ import (
 	"time"
 )
 
-// TodoStore is a simple in-memory storage for Todos
-type TodoStore struct {
+// TodoStore defines the interface for todo storage
+type TodoStore interface {
+	Create(todo models.Todo) (models.Todo, error)
+	GetAll() ([]models.Todo, error)
+	GetByID(id int) (models.Todo, error)
+	Update(id int, updated models.Todo) (models.Todo, error)
+	Delete(id int) error
+}
+
+// InMemoryTodoStore is a simple in-memory storage for Todos
+type InMemoryTodoStore struct {
 	mu     sync.Mutex
 	todos  map[int]models.Todo
 	nextID int
 }
 
-// NewTodoStore creates a new TodoStore
-func NewTodoStore() *TodoStore {
-	return &TodoStore{
+// NewInMemoryTodoStore creates a new InMemoryTodoStore
+func NewInMemoryTodoStore() *InMemoryTodoStore {
+	return &InMemoryTodoStore{
 		todos:  make(map[int]models.Todo),
 		nextID: 1,
 	}
 }
 
 // Create adds a new Todo to the store
-func (s *TodoStore) Create(todo models.Todo) models.Todo {
+func (s *InMemoryTodoStore) Create(todo models.Todo) (models.Todo, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -33,11 +43,11 @@ func (s *TodoStore) Create(todo models.Todo) models.Todo {
 	s.todos[s.nextID] = todo
 	s.nextID++
 
-	return todo
+	return todo, nil
 }
 
 // GetAll returns all Todos from the store
-func (s *TodoStore) GetAll() []models.Todo {
+func (s *InMemoryTodoStore) GetAll() ([]models.Todo, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -45,11 +55,11 @@ func (s *TodoStore) GetAll() []models.Todo {
 	for _, t := range s.todos {
 		result = append(result, t)
 	}
-	return result
+	return result, nil
 }
 
 // GetByID returns a single Todo from the store by ID
-func (s *TodoStore) GetByID(id int) (models.Todo, error) {
+func (s *InMemoryTodoStore) GetByID(id int) (models.Todo, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -61,7 +71,7 @@ func (s *TodoStore) GetByID(id int) (models.Todo, error) {
 }
 
 // Update updates a Todo in the store
-func (s *TodoStore) Update(id int, updated models.Todo) (models.Todo, error) {
+func (s *InMemoryTodoStore) Update(id int, updated models.Todo) (models.Todo, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -80,7 +90,7 @@ func (s *TodoStore) Update(id int, updated models.Todo) (models.Todo, error) {
 }
 
 // Delete removes a Todo from the store by ID
-func (s *TodoStore) Delete(id int) error {
+func (s *InMemoryTodoStore) Delete(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

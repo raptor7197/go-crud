@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Go Todo App</title>
+</head>
+<body>
+
+  <h1>Todo List</h1>
+
+  <form id="todoForm">
+    <input type="text" id="title" placeholder="Title" required />
+    <input type="text" id="description" placeholder="Description" />
+    <button type="submit">Add Todo</button>
+  </form>
+
+  <h2>Todos</h2>
+  <ul id="todoList"></ul>
+
+<script>
+async function loadTodos() {
+  const res = await fetch('/todos');
+  const todos = await res.json();
+
+  const list = document.getElementById('todoList');
+  list.innerHTML = '';
+
+  todos.forEach(t => {
+    const li = document.createElement('li');
+    li.textContent = `${t.id}: ${t.title} (${t.completed ? 'done' : 'pending'})`;
+    list.appendChild(li);
+  });
+}
+
+document.getElementById('todoForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const title = document.getElementById('title').value;
+  const description = document.getElementById('description').value;
+
+  await fetch('/todos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description })
+  });
+
+  document.getElementById('title').value = '';
+  document.getElementById('description').value = '';
+
+  loadTodos();
+});
+
+loadTodos();
+</script>
+
+</body>
+</html>
+

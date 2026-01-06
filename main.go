@@ -19,7 +19,16 @@ func main() {
 	store := storage.NewTodoStore()
 	todoHandler := handlers.NewTodoHandler(store)
 
+
 	mux := http.NewServeMux()
+	mux.HandleFunc("/",func(w http.ResponseWriter,r *http.Request) {
+		if r.URL.Path!="/" {
+			http.NotFound(w,r)
+			return
+		}
+		http.ServeFile(w,r,"html/index.html")
+	})
+
 	mux.Handle("/todos",handlers.WithMiddleware(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {

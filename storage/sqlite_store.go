@@ -8,17 +8,17 @@ import (
 	"time"
 )
 
-type SQLiteStore struct {
+type SqliteTodoStore struct {
 	db *sql.DB
 }
 
-func NewSQLiteStore(dsn string) (*SQLiteStore, error) {
+func NewSqliteTodoStore(dsn string) (*SqliteTodoStore, error) {
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	store := &SQLiteStore{db: db}
+	store := &SqliteTodoStore{db: db}
 	err = store.init()
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func NewSQLiteStore(dsn string) (*SQLiteStore, error) {
 	return store, nil
 }
 
-func (s *SQLiteStore) init() error {
+func (s *SqliteTodoStore) init() error {
 	_, err := s.db.Exec(`CREATE TABLE IF NOT EXISTS todos (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			title TEXT NOT NULL,
@@ -37,7 +37,7 @@ func (s *SQLiteStore) init() error {
 	return err
 }
 
-func (s *SQLiteStore) Create(todo models.Todo) (models.Todo, error) {
+func (s *SqliteTodoStore) Create(todo models.Todo) (models.Todo, error) {
 	now := time.Now()
 
 	res, err := s.db.Exec(`INSERT INTO todos (title, description, completed, created_at, updated_at)
@@ -53,7 +53,7 @@ func (s *SQLiteStore) Create(todo models.Todo) (models.Todo, error) {
 	return todo, nil
 }
 
-func (s *SQLiteStore) GetAll() ([]models.Todo, error) {
+func (s *SqliteTodoStore) GetAll() ([]models.Todo, error) {
 	rows, err := s.db.Query(`SELECT id, title, description, completed, created_at, updated_at FROM todos`)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (s *SQLiteStore) GetAll() ([]models.Todo, error) {
 	return todos, nil
 }
 
-func (s *SQLiteStore) GetByID(id int) (models.Todo, error) {
+func (s *SqliteTodoStore) GetByID(id int) (models.Todo, error) {
 	var t models.Todo
 
 	err := s.db.QueryRow(`
@@ -86,7 +86,7 @@ func (s *SQLiteStore) GetByID(id int) (models.Todo, error) {
 	return t, err
 }
 
-func (s *SQLiteStore) Update(id int, updated models.Todo) (models.Todo, error) {
+func (s *SqliteTodoStore) Update(id int, updated models.Todo) (models.Todo, error) {
 	now := time.Now()
 	res, err := s.db.Exec(`UPDATE todos
 		SET title = ?, description = ?, completed = ?, updated_at = ?
@@ -102,7 +102,7 @@ func (s *SQLiteStore) Update(id int, updated models.Todo) (models.Todo, error) {
 	return s.GetByID(id)
 }
 
-func (s *SQLiteStore) Delete(id int) error {
+func (s *SqliteTodoStore) Delete(id int) error {
 	res, err := s.db.Exec(`DELETE FROM todos WHERE id=?`, id)
 	if err != nil {
 		return err
